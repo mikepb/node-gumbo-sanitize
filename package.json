@@ -1,0 +1,20 @@
+{
+  "name": "node-gumbo-sanitize",
+  "version": "0.0.1",
+  "license": "MIT",
+  "main": "index.js",
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/mikepb/node-gumbo-sanitize.git"
+  },
+  "scripts": {
+    "test": "mocha"
+  },
+  "dependencies": {
+    "gumbo-parser": "^0.2.1",
+    "he": "^0.5.0"
+  },
+  "devDependencies": {
+    "mocha": "^2.2.5"
+  }
+}
