@@ -15,7 +15,7 @@ npm install --save gumbo-sanitize
 
 ```js
 var sanitize = require("gumbo-sanitize");
-console.log(sanitize("<img src=javascript:alert('XSS')>", Sanitize.RELAXED));
+console.log(sanitize("<img src=javascript:alert('XSS')>", sanitize.RELAXED));
 // prints <img>
 ```
 
