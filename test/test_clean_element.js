@@ -178,53 +178,53 @@ describe("Clean Element", function () {
   describe('Default config', function () {
     it('should remove non-whitelisted elements, leaving safe contents behind', function () {
       assert.equal(
-        Sanitize.sanitize('foo <b>bar</b> <strong><a href="#a">baz</a></strong> quux'),
+        Sanitize.fragment('foo <b>bar</b> <strong><a href="#a">baz</a></strong> quux'),
         'foo bar baz quux');
 
       assert.equal(
-        Sanitize.sanitize('<script>alert("<xss>");</script>'),
+        Sanitize.fragment('<script>alert("<xss>");</script>'),
         'alert(&quot;&lt;xss&gt;&quot;);');
 
       assert.equal(
-        Sanitize.sanitize('<<script>script>alert("<xss>");</<script>>'),
+        Sanitize.fragment('<<script>script>alert("<xss>");</<script>>'),
         '&lt;script&gt;alert(&quot;&lt;xss&gt;&quot;);&lt;/&lt;script&gt;&gt;');
 
       assert.equal(
-        Sanitize.sanitize('< script <>> alert("<xss>");</script>'),
+        Sanitize.fragment('< script <>> alert("<xss>");</script>'),
         '&lt; script &lt;&gt;&gt; alert(&quot;&quot;);');
     });
 
     it('should surround the contents of whitespace elements with space characters when removing the element', function () {
       assert.equal(
-        Sanitize.sanitize('foo<div>bar</div>baz'),
+        Sanitize.fragment('foo<div>bar</div>baz'),
         'foo bar baz');
 
       assert.equal(
-        Sanitize.sanitize('foo<br>bar<br>baz'),
+        Sanitize.fragment('foo<br>bar<br>baz'),
         'foo bar baz');
 
       assert.equal(
-        Sanitize.sanitize('foo<hr>bar<hr>baz'),
+        Sanitize.fragment('foo<hr>bar<hr>baz'),
         'foo bar baz');
     });
 
     it('should not choke on several instances of the same element in a row', function () {
       assert.equal(
-        Sanitize.sanitize('<img src="http://www.google.com/intl/en_ALL/images/logo.gif"><img src="http://www.google.com/intl/en_ALL/images/logo.gif"><img src="http://www.google.com/intl/en_ALL/images/logo.gif"><img src="http://www.google.com/intl/en_ALL/images/logo.gif">'),
+        Sanitize.fragment('<img src="http://www.google.com/intl/en_ALL/images/logo.gif"><img src="http://www.google.com/intl/en_ALL/images/logo.gif"><img src="http://www.google.com/intl/en_ALL/images/logo.gif"><img src="http://www.google.com/intl/en_ALL/images/logo.gif">'),
         '');
     });
 
     Object.keys(strings).forEach(function (name) {
       var data = strings[name];
       it("should clean " + name + " HTML", function () {
-        assert.equal(Sanitize.sanitize(data.html), data.default);
+        assert.equal(Sanitize.fragment(data.html), data.default);
       });
     });
 
     Object.keys(protocols).forEach(function (name) {
       var data = protocols[name];
       it("should not allow " + name, function () {
-        assert.equal(Sanitize.sanitize(data.html), data.default);
+        assert.equal(Sanitize.fragment(data.html), data.default);
       });
     });
   });
@@ -237,14 +237,14 @@ describe("Clean Element", function () {
     Object.keys(strings).forEach(function (name) {
       var data = strings[name];
       it("should clean " + name + " HTML", function () {
-        assert.equal(this.s.sanitize(data.html), data.restricted);
+        assert.equal(this.s.fragment(data.html), data.restricted);
       });
     });
 
     Object.keys(protocols).forEach(function (name) {
       var data = protocols[name];
       it("should not allow " + name, function () {
-        assert.equal(this.s.sanitize(data.html), data.restricted);
+        assert.equal(this.s.fragment(data.html), data.restricted);
       });
     });
   });
@@ -256,27 +256,27 @@ describe("Clean Element", function () {
 
     it('should not choke on valueless attributes', function () {
       assert.equal(
-        this.s.sanitize('foo <a href>foo</a> bar'),
+        this.s.fragment('foo <a href>foo</a> bar'),
         'foo <a href="" rel="nofollow">foo</a> bar');
     });
 
     it('should downcase attribute names', function () {
       assert.equal(
-        this.s.sanitize('<a HREF="javascript:alert(\'foo\')">bar</a>'),
+        this.s.fragment('<a HREF="javascript:alert(\'foo\')">bar</a>'),
         '<a rel="nofollow">bar</a>');
     });
 
     Object.keys(strings).forEach(function (name) {
       var data = strings[name];
       it("should clean " + name + " HTML", function () {
-        assert.equal(this.s.sanitize(data.html), data.basic);
+        assert.equal(this.s.fragment(data.html), data.basic);
       });
     });
 
     Object.keys(protocols).forEach(function (name) {
       var data = protocols[name];
       it("should not allow " + name, function () {
-        assert.equal(this.s.sanitize(data.html), data.basic);
+        assert.equal(this.s.fragment(data.html), data.basic);
       });
     });
   });
@@ -288,21 +288,21 @@ describe("Clean Element", function () {
 
     it('should encode special chars in attribute values', function () {
       assert.equal(
-        this.s.sanitize('<a href="http://example.com" title="<b>&eacute;xamples</b> & things">foo</a>'),
+        this.s.fragment('<a href="http://example.com" title="<b>&eacute;xamples</b> & things">foo</a>'),
         '<a href="http://example.com" title="&lt;b&gt;&eacute;xamples&lt;/b&gt; &amp; things">foo</a>');
     });
 
     Object.keys(strings).forEach(function (name) {
       var data = strings[name];
       it("should clean " + name + " HTML", function () {
-        assert.equal(this.s.sanitize(data.html), data.relaxed);
+        assert.equal(this.s.fragment(data.html), data.relaxed);
       });
     });
 
     Object.keys(protocols).forEach(function (name) {
       var data = protocols[name];
       it("should not allow " + name, function () {
-        assert.equal(this.s.sanitize(data.html), data.relaxed);
+        assert.equal(this.s.fragment(data.html), data.relaxed);
       });
     });
   });
@@ -311,19 +311,19 @@ describe("Clean Element", function () {
     it('should allow attributes on all elements if whitelisted under :all', function () {
       var input = '<p class="foo">bar</p>';
 
-      assert.equal(Sanitize.sanitize(input), ' bar ');
+      assert.equal(Sanitize.fragment(input), ' bar ');
 
-      assert.equal(Sanitize.sanitize(input, {
+      assert.equal(Sanitize.fragment(input, {
         elements: ['p'],
         attributes: {_: ['class']}
       }), input);
 
-      assert.equal(Sanitize.sanitize(input, {
+      assert.equal(Sanitize.fragment(input, {
         elements: ['p'],
         attributes: {div: ['class']}
       }), '<p>bar</p>');
 
-      assert.equal(Sanitize.sanitize(input, {
+      assert.equal(Sanitize.fragment(input, {
         elements: ['p'],
         attributes: {p: ['title'], _: ['class']}
       }), input);
@@ -332,7 +332,7 @@ describe("Clean Element", function () {
     it('should allow relative URLs containing colons when the colon is not in the first path segment', function () {
       var input = '<a href="/wiki/Special:Random">Random Page</a>';
 
-      assert.equal(Sanitize.sanitize(input, {
+      assert.equal(Sanitize.fragment(input, {
         elements: ['a'],
         attributes: {a: ['href']},
         protocols: {a: {href: [Sanitize.RELATIVE]}}
@@ -342,7 +342,7 @@ describe("Clean Element", function () {
     it('should allow relative URLs containing colons when the colon is part of an anchor', function () {
       var input = '<a href="#fn:1">Footnote 1</a>';
 
-      assert.equal(Sanitize.sanitize(input, {
+      assert.equal(Sanitize.fragment(input, {
         elements: ['a'],
         attributes: {a: ['href']},
         protocols: {a: {href: [Sanitize.RELATIVE]}}
@@ -350,7 +350,7 @@ describe("Clean Element", function () {
 
       input = '<a href="somepage#fn:1">Footnote 1</a>';
 
-      assert.equal(Sanitize.sanitize(input, {
+      assert.equal(Sanitize.fragment(input, {
         elements: ['a'],
         attributes: {a: ['href']},
         protocols: {a: {href: [Sanitize.RELATIVE]}}
@@ -359,31 +359,31 @@ describe("Clean Element", function () {
 
     xit('should remove the contents of filtered nodes when :remove_contents is true', function () {
       assert.equal(
-        Sanitize.sanitize('foo bar <div>baz<span>quux</span></div>',
+        Sanitize.fragment('foo bar <div>baz<span>quux</span></div>',
         {removeContents: true}
       ), 'foo bar   ');
     });
 
     xit('should remove the contents of specified nodes when :remove_contents is an Array of element names as strings', function () {
       assert.equal(
-        Sanitize.sanitize('foo bar <div>baz<span>quux</span><script>alert("hello!");</script></div>',
+        Sanitize.fragment('foo bar <div>baz<span>quux</span><script>alert("hello!");</script></div>',
           {removeContents: ['script', 'span']}
         ), 'foo bar  baz ');
     });
 
     xit('should remove the contents of specified nodes when :remove_contents is an Array of element names as symbols', function () {
       assert.equal(
-        Sanitize.sanitize('foo bar <div>baz<span>quux</span><script>alert("hello!");</script></div>',
+        Sanitize.fragment('foo bar <div>baz<span>quux</span><script>alert("hello!");</script></div>',
         {removeContents: ["script", "span"]}
       ), 'foo bar  baz ')
     });
 
     it('should not allow arbitrary HTML5 data attributes by default', function () {
-      assert.equal(Sanitize.sanitize('<b data-foo="bar"></b>', {
+      assert.equal(Sanitize.fragment('<b data-foo="bar"></b>', {
         elements: ['b']
       }), '<b></b>');
 
-      assert.equal(Sanitize.sanitize('<b class="foo" data-foo="bar"></b>', {
+      assert.equal(Sanitize.fragment('<b class="foo" data-foo="bar"></b>', {
         attributes: {'b':  ['class']},
         elements: ['b']
       }), '<b class="foo"></b>');
@@ -396,35 +396,35 @@ describe("Clean Element", function () {
       });
 
       assert.equal(
-        s.sanitize('<b data-foo="valid" data-bar="valid"></b>'),
+        s.fragment('<b data-foo="valid" data-bar="valid"></b>'),
         '<b data-foo="valid" data-bar="valid"></b>');
 
       assert.equal(
-        s.sanitize('<b data-="invalid"></b>'),
+        s.fragment('<b data-="invalid"></b>'),
         '<b></b>');
 
       assert.equal(
-        s.sanitize('<b data-="invalid"></b>'),
+        s.fragment('<b data-="invalid"></b>'),
         '<b></b>');
 
       assert.equal(
-        s.sanitize('<b data-xml="invalid"></b>'),
+        s.fragment('<b data-xml="invalid"></b>'),
         '<b></b>');
 
       assert.equal(
-        s.sanitize('<b data-xmlfoo="invalid"></b>'),
+        s.fragment('<b data-xmlfoo="invalid"></b>'),
         '<b></b>');
 
       assert.equal(
-        s.sanitize('<b data-f:oo="valid"></b>'),
+        s.fragment('<b data-f:oo="valid"></b>'),
         '<b></b>');
 
       assert.equal(
-        s.sanitize('<b data-f/oo="partial"></b>'),
+        s.fragment('<b data-f/oo="partial"></b>'),
         '<b data-f=""></b>');
 
       assert.equal(
-        s.sanitize('<b data-éfoo="valid"></b>'),
+        s.fragment('<b data-éfoo="valid"></b>'),
         '<b></b>');
     });
 
@@ -437,10 +437,10 @@ describe("Clean Element", function () {
         }
       });
 
-      assert.equal(s.sanitize('<p>foo</p>'), "\nfoo\n");
-      assert.equal(s.sanitize('<p>foo</p><p>bar</p>'), "\nfoo\n\nbar\n");
-      assert.equal(s.sanitize('foo<div>bar</div>baz'), "foo\nbar\nbaz");
-      assert.equal(s.sanitize('foo<br>bar<br>baz'), "foo\nbar\nbaz");
+      assert.equal(s.fragment('<p>foo</p>'), "\nfoo\n");
+      assert.equal(s.fragment('<p>foo</p><p>bar</p>'), "\nfoo\n\nbar\n");
+      assert.equal(s.fragment('foo<div>bar</div>baz'), "foo\nbar\nbaz");
+      assert.equal(s.fragment('foo<br>bar<br>baz'), "foo\nbar\nbaz");
     });
   });
 

@@ -58,7 +58,7 @@ var Sanitize = module.exports = function Sanitize (html, options) {
   if (typeof html == "object") options = html, html = null;
 
   // sanitize(html, options)
-  if (!(this instanceof Sanitize)) return Sanitize.sanitize(html, options);
+  if (!(this instanceof Sanitize)) return Sanitize.fragment(html, options);
 
   // new Sanitize(options)
   this.setOptions(options);
@@ -69,13 +69,25 @@ var Sanitize = module.exports = function Sanitize (html, options) {
 /**
  * Sanitize the input HTML using the given options.
  *
- * @param {String} html The HTML string to sanitize.
+ * @param {String} html The HTML document string to sanitize.
  * @param {Object} [options] The sanitize configuration to use.
  * @return {String} When called as a function, returns the sanitized HTML.
  */
 
-Sanitize.sanitize = function (html, options) {
-  return new Sanitize(options).sanitize(html);
+Sanitize.document = function (html, options) {
+  return new Sanitize(options).document(html);
+}
+
+/**
+ * Sanitize the input HTML using the given options.
+ *
+ * @param {String} html The HTML fragment string to sanitize.
+ * @param {Object} [options] The sanitize configuration to use.
+ * @return {String} When called as a function, returns the sanitized HTML.
+ */
+
+Sanitize.fragment = function (html, options) {
+  return new Sanitize(options).fragment(html);
 }
 
 /**
@@ -304,15 +316,29 @@ Sanitize.prototype.parse = function (html, options) {
 };
 
 /**
- * Sanitize the given HTML string.
+ * Sanitize the given HTML document string.
  *
  * @param {String} html The HTML string.
- * @param {Object} [options] Gumbo parser options.
  * @return {String} The sanitized HTML string.
  */
 
-Sanitize.prototype.sanitize = function (html, options) {
-  return this.parse(html, options), this.toString();
+Sanitize.prototype.document = function (html, options) {
+  this.isDocument = true;
+  this.parse(html);
+  return this.toString();
+};
+
+/**
+ * Sanitize the given HTML fragment string.
+ *
+ * @param {String} html The HTML string.
+ * @return {String} The sanitized HTML string.
+ */
+
+Sanitize.prototype.fragment = function (html, options) {
+  this.isDocument = false;
+  this.parse(html, {fragment: true});
+  return this.toString();
 };
 
 /**
@@ -361,7 +387,7 @@ Sanitize.prototype.visit = function (node) {
  */
 
 Sanitize.prototype.visitElement = function (node) {
-  var virtual = !node.originalTag;
+  var virtual = !this.isDocument && !node.originalTag;
   var tag = node.tagName;
   var ws = this.whitespace[tag];
   var attrs, name, value;

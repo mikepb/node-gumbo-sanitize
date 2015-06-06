@@ -13,6 +13,15 @@ var assert = require("assert");
 
 describe("Sanitize", function () {
 
+  describe("default export", function () {
+    it("should sanitize a fragment", function () {
+      var answer = Sanitize(
+        '<b><script>alert("Hello World!")</script></b>',
+        Sanitize.BASIC);
+      assert.equal(answer, "<b>alert(&quot;Hello World!&quot;)</b>");
+    });
+  });
+
   describe("instance methods", function () {
 
     before(function () {
@@ -32,7 +41,7 @@ describe("Sanitize", function () {
       });
 
       it("should sanitize an HTML document", function () {
-        var subject = this.s.sanitize(
+        var subject = this.s.document(
           '<!doctype html><html><b>Lo<!-- comment -->rem</b> <a href="pants" title="foo">ipsum</a> <a href="http://foo.com/"><strong>dolor</strong></a> sit<br/>amet <script>alert("hello world");</script></html>');
         assert.equal(subject, '<html>Lorem ipsum dolor sit amet alert(&quot;hello world&quot;);</html>');
       });
@@ -40,17 +49,17 @@ describe("Sanitize", function () {
 
     describe("#fragment", function () {
       it("should sanitize an HTML fragment", function () {
-        var subject = this.s.sanitize(
+        var subject = this.s.fragment(
           '<b>Lo<!-- comment -->rem</b> <a href="pants" title="foo">ipsum</a> <a href="http://foo.com/"><strong>dolor</strong></a> sit<br/>amet <script>alert("hello world");</script>');
         assert.equal(subject, 'Lorem ipsum dolor sit amet alert(&quot;hello world&quot;);');
       });
 
       it("should not choke on fragments containing <html> or <body>", function () {
-        assert.equal(this.s.sanitize("<html><b>foo</b></html>"), "foo");
-        assert.equal(this.s.sanitize("<body><b>foo</b></body>"), "foo");
-        assert.equal(this.s.sanitize(
+        assert.equal(this.s.fragment("<html><b>foo</b></html>"), "foo");
+        assert.equal(this.s.fragment("<body><b>foo</b></body>"), "foo");
+        assert.equal(this.s.fragment(
           "<html><body><b>foo</b></body></html>"), "foo");
-        assert.equal(this.s.sanitize(
+        assert.equal(this.s.fragment(
           "<!DOCTYPE html><html><body><b>foo</b></body></html>"), "foo");
       });
     });
