@@ -153,15 +153,15 @@ Sanitize.DEFAULT = {
  * Restricted sanitize configuration.
  */
 
-Sanitize.RESTRICTED = extend({}, Sanitize.DEFAULT, {
+Sanitize.RESTRICTED = {
   elements: ["b", "em", "i", "strong", "u"]
-});
+};
 
 /**
  * Basic sanitize configuration.
  */
 
-Sanitize.BASIC = extend({}, Sanitize.RESTRICTED, {
+Sanitize.BASIC = {
   elements: Sanitize.RESTRICTED.elements.concat(
     "a", "abbr", "blockquote", "br", "cite", "code", "dd", "dfn", "dl",
     "dt", "kbd", "li", "mark", "ol", "p", "pre", "q", "s", "samp", "small",
@@ -183,13 +183,13 @@ Sanitize.BASIC = extend({}, Sanitize.RESTRICTED, {
     blockquote: {cite: ["http", "https", Sanitize.RELATIVE]},
     q:          {cite: ["http", "https", Sanitize.RELATIVE]}
   }
-});
+};
 
 /**
  * Relaxed sanitize configuration.
  */
 
-Sanitize.RELAXED = extend({}, Sanitize.BASIC, {
+Sanitize.RELAXED = {
   elements: Sanitize.BASIC.elements.concat(
     "address", "article", "aside", "bdi", "bdo", "body", "caption", "col",
     "colgroup", "data", "del", "div", "figcaption", "figure", "footer",
@@ -219,31 +219,64 @@ Sanitize.RELAXED = extend({}, Sanitize.BASIC, {
                "scope", "sorted", "valign", "width"],
     ul:       ["type"]
   }),
-  addAttributes: null,
   protocols: extend({}, Sanitize.BASIC.protocols, {
     del: {cite: ["http", "https", Sanitize.RELATIVE]},
     img: {src:  ["http", "https", Sanitize.RELATIVE]},
     ins: {cite: ["http", "https", Sanitize.RELATIVE]}
   })
-});
+};
+
+/**
+ * Parse options for fast lookup.
+ *
+ * @param {Object} options e.g. Sanitize.RELAXED
+ * @return {Object}
+ * @private
+ */
+
+function parseOptions (options) {
+
+  // init cache
+  var cache = parseOptions.cache;
+  var lookup = parseOptions.lookup;
+  if (!cache) {
+    cache = parseOptions.cache = [];
+    lookup = parseOptions.lookup = [];
+  };
+
+  // maybe return cached lookup object
+  var at = cache.indexOf(options);
+  if (~at) return cache.lookup[at];
+
+  // set defaults
+  options = extend({}, Sanitize.DEFAULT, options);
+
+  // for fast lookups
+  var tables = {
+    elements: toHash(options.elements),
+    attributes: toHash2(options.attributes),
+    addAttributes: options.addAttributes || {},
+    protocols: toHash3(options.protocols),
+    selfClosing: toHash(options.selfClosing),
+    whitespace: options.whitespace || {}
+  };
+
+  // save cache
+  cache.push(options);
+  lookup.push(tables);
+
+  return tables;
+}
 
 /**
  * Set options on Sanitize instance.
+ *
+ * @param {Object} options e.g. Sanitize.RELAXED
  */
 
+var cachedRestricted, cachedBasic, cachedRelaxed;
 Sanitize.prototype.setOptions = function (options) {
-  if (!options || options === this.options) return;
-
-  // set defaults
-  this.options = options = extend({}, Sanitize.DEFAULT, options);
-
-  // for fast lookups
-  this.elements = toHash(options.elements)
-  this.attributes = toHash2(options.attributes);
-  this.addAttributes = options.addAttributes || {};
-  this.protocols = toHash3(options.protocols)
-  this.selfClosing = toHash(options.selfClosing);
-  this.whitespace = options.whitespace || {};
+  if (options) extend(this, parseOptions(options));
 };
 
 /**
